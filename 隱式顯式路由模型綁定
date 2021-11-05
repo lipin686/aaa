@@ -21,7 +21,7 @@ public function getRouteKeyName()
     return 'name';
 }
 
-需要在RouteServiceProvider的boot方法中定義綁定關係的叫做顯式綁定    //我的理解是要自定義查找資料庫時 用顯式綁定 單純用id或name查找用隱式綁定
+需要在App\Providers\RouteServiceProvider的boot方法中定義綁定關係的叫做顯式綁定    //我的理解是要自定義查找資料庫時 用顯式綁定 單純用id或name查找用隱式綁定
 //顯式綁定在route跟隱式綁定一模一樣 (11行到14行) 只是要再多去新增修改boot
 public function boot(Router $router)
 {
