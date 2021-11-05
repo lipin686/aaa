@@ -1,0 +1,35 @@
+分場景說明
+1.沒有CSRF之前駭客如何做
+我登入銀行使用了匯款功能後去其他網站(假設youtube)操作，這時候如果駭客在youtube廣告設定匯款指令，然後使用者誤點(圖片 連結等)，
+因銀行登入資訊還未失效，錢就匯到駭客那邊了，因為銀行只認識登入資訊不認行為
+
+2.有了CSRF是如何防範的
+每次針對資料庫的動作(POST PUT DELETE等)都要有一個CSRF認證，用一個token隨機碼來識別 
+代表我這次修改資料庫是確實從使用者本人這裡發出，而不是駭客在其他網站所設定的指令 
+駭客沒有token而無法成功
+
+簡單來說駭客在沒有CSRF之前是欺騙使用者的瀏覽器，用使用者的名義進行操作
+
+3.CSRF是如何運行的
+伺服器端會先產生一個token然後嵌入到html裡面，並傳送token給使用者，
+使用者發出請求時，必須帶有此token才能順利驗證，token具有唯一性以及隨機性
+所以駭客傳送請求時，會因沒有token而驗證失敗，就算其他token但其數值也不一樣，驗證也會失敗。
+
+php嵌入html
+<input type="hidden" name="_token" value="{{csrf_token()}}">
+
+javascript
+<meta name="csrf-token" content="<?php echo csrf_token(); ?>" id="csrf-token">
+
+jquery
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    } 
+});
+
+Vue
+Vue.http.interceptors.push((request, next) => {
+    request.headers['X-CSRF-TOKEN'] = document.querySelector('#csrf-token').getAttribute('content');
+    next();
+});
