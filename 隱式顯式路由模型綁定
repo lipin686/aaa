@@ -1,0 +1,32 @@
+原本要從資料庫拿到某資料表的某筆資料(假設是user)
+Route::group(['middleware' => ['web']], function () {
+    Route::get('/user/{id}',function($id){
+        $user = \App\User::findOrFail($id);
+        dd($user);
+    });
+});
+要先用路由get id 然後再用Eloquent模型(\App\User)去讀取id
+
+隱式路由模型綁定是把上面的簡化 變成
+Route::get('api/users/{user}', function (App\User $user) {  這裡的user是指id(預設是id 可以改其他的 向是name等等)  $user是該id的資料 
+    dd($user);              //就可以拿到某id的全部資料
+    return $user->email;    //單獨拿出user的欄位email
+});
+
+如果要修改成不是預設是id 
+要去model裡面新增getRouteKeyName()
+這樣上面的user就不是預設id了 變成預設name
+public function getRouteKeyName()
+{
+    return 'name';
+}
+
+需要在RouteServiceProvider的boot方法中定義綁定關係的叫做顯式綁定    //我的理解是要自定義查找資料庫時 用顯式綁定 單純用id或name查找用隱式綁定
+//顯式綁定在route跟隱式綁定一模一樣 (11行到14行) 只是要再多去新增修改boot
+public function boot(Router $router)
+{
+    $router->bind('user',function($value){
+        return App\Models\User::where('name', $value)->firstOrFail();
+    });
+    parent::boot($router);
+}
