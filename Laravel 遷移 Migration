@@ -1,0 +1,62 @@
+創建文件
+php artisan make:migration create_users_table --create=users  //創建資料表 --create=指定資料表名稱
+php artisan make:migration alter_users_add_nickname --table=users  //更新資料表  --table=要修改的資料表名稱
+
+檔案位置:/database/migrations
+Schema::create('users', function (Blueprint $table) {
+    $table->increments('id');
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();       //可為空
+    $table->string('password');
+    $table->rememberToken();
+    $table->timestamps();        
+});
+
+Artisan操作:
+1.執行 php artisan migrate
+2.回滾 php artisan migrate:rollback --step=5  //回到倒數第五個
+  php artisan migrate:reset                   //所有
+3.回滾後重建 php artisan migrate:refresh            //全部回滾後重新建立
+  php artisan migrate:refresh --seed          //填充假資料
+  php artisan migrate:refresh --step=5        //從倒數第五個開始回滾後重新建立
+4.刪除後重建 php artisan migrate:fresh         //同上 
+
+指令:
+檢查表/列是否存在
+if (Schema::hasTable('users')) {
+    //
+}
+if (Schema::hasColumn('users', 'email')) {
+    //
+}
+
+重命名/删除表
+Schema::rename($from, $to);
+Schema::drop('users');
+Schema::dropIfExists('users');
+
+表的資料類型:
+$table->boolean('confirmed');       //布林
+$table->char('name', 4);            //char 不建議使用
+$table->string('name', 100);        //varchar 用這個
+$table->date('created_at');         //日期
+$table->dateTime('created_at');     //日期+時間
+$table->dateTimeTz('created_at');   //包含時區
+$table->decimal('amount', 20, 4);   //小數點 (name,總共,小數點後幾位)自訂 M+D位元 (20-4) 16.4 = 8位元+2位元=10位元 通常都用這個 這個大部分比其他兩個位元更少 
+$table->double('column', 15, 8);    //雙精度 小數點後15位 8位元
+$table->float('amount', 8, 2);      //單精度 小數點後7位  4位元
+$table->integer('votes');           //數字
+$table->text('description');        //文章
+$table->time('sunrise');            //時間
+$table->timeTz('sunrise');          //包含時區
+$table->timestamp('added_on');      //時間戳
+$table->timestampTz('added_on');    //包含時區
+$table->timestamps();               //可以為空
+$table->timestampsTz();             //包含時區
+$table->increments('id');           //自動增加id
+
+$table->engine = 'InnoDB';	指定表的存储引擎（MySQL）
+$table->charset = 'utf8';	指定数据表的默认字符集（MySQL）
+$table->collation = 'utf8_unicode_ci';	指定数据表的字符序（MySQL）
+$table->temporary();	创建临时表（除SQL Server）
