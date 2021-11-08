@@ -1,0 +1,38 @@
+配置多個資料庫連接
+如果另一個資料庫也是mysql
+config/database.php的connections裡面新增
+'mysql_old' => [
+    'driver' => 'mysql',
+    'host' => env('DB_HOST_OLD', '127.0.0.1'),
+    'port' => env('DB_PORT_OLD', '3306'),
+    'database' => env('DB_DATABASE_OLD', 'forge'),
+    'username' => env('DB_USERNAME_OLD', 'forge'),
+    'password' => env('DB_PASSWORD_OLD', ''),
+    'unix_socket' => env('DB_SOCKET_OLD', ''),
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+    'prefix' => '',
+    'strict' => true,
+    'engine' => null,
+],
+
+然後再.env裡面新增配置項:
+DB_CONNECTION_OLD=mysql
+DB_HOST_OLD=mysql
+DB_PORT_OLD=3306
+DB_DATABASE_OLD=laravel56
+DB_USERNAME_OLD=root
+DB_PASSWORD_OLD=root
+
+如何撰寫:
+1.DB門面原生SQL
+$users = DB::connection('mysql_old')->select(...);
+DB::connection('mysql_old')->insert(...);
+2.查詢建構
+$users = DB::connection('mysql_old')->table('users')->where(...)->get();
+DB::connection('mysql_old')->table('users')->insert(...);
+3.Eloquent 模型类
+protected $connection = 'mysql_old';
+
+效能調整:
+讀寫分離 先不寫進來 等之後能力到達再複習 先知道有這個東西
