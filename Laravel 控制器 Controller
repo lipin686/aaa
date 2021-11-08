@@ -1,0 +1,2 @@
+用Artisan創建
+php artisan make:controller PhotoController --resource
