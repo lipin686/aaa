@@ -1,0 +1,82 @@
+正則表達式:
+Route::get('page/{id}', function ($id) {
+    return '页面ID: ' . $id;
+})->where('id', '[0-9]+');
+
+Route::get('page/{name}', function ($name) {
+    return '页面名称: ' . $name;
+})->where('name', '[A-Za-z]+');
+
+Route::get('page/{id}/{slug}', function ($id, $slug) {
+    return $id . ':' . $slug;
+})->where(['id' => '[0-9]+', 'slug' => '[A-Za-z]+']);
+
+命名路由:
+Route::get('user/{id?}', function ($id = 1) {
+    return "用户ID: " . $id;
+})->name('user.profile');
+
+<a href="{{ route('user.profile', ['id' => 100]) }}">
+
+中間鍵
+鏈式調用 
+Route::middleware('auth')->group(function () {    //導向驗證auth頁面 裡面可以判斷登入資訊是否正確 錯誤就返回登入介面
+    Route::get('dashboard', function () {
+        return view('dashboard');
+    });
+    Route::get('account', function () {
+        return view('account');
+    });
+});
+上面的其實是語法糖 會調用下面的 但通常都用上面的 因可讀性好(直接寫出 而不是先套用group再選) 
+Route::group(['middleware' => 'auth'], function () { 
+    Route::get('dashboard', function () { 
+        return view('dashboard'); 
+    }); 
+    Route::get('account', function () { 
+        return view('account'); 
+    }); 
+});
+
+路徑前綴
+Route::prefix('api')->group(function () {       //都具有/api的前綴
+    Route::get('/', function () {
+        // 处理 /api 路由
+    })->name('api.index');
+    Route::get('users', function () {
+        // 处理 /api/users 路由
+    })->name('api.users');
+});
+
+子域名路由   
+Route::domain('{account}.blog.test')->group(function () {   //跟路徑前綴一樣 但換子網域 account也可以自行輸入像是個人信箱 
+    Route::get('/', function ($account) {
+        //
+    });
+    Route::get('user/{id}', function ($account, $id) {
+        //
+    });
+});
+
+子命名空間(Controller的前綴) 
+Route::namespace('Admin')->group(function() {
+     // App\Http\Controllers\Admin\AdminController
+     Route::get('/admin', 'AdminController@index');
+});
+
+路由命名前缀
+// 路由命名+路径前缀        
+Route::name('user.')->prefix('user')->group(function () {
+    Route::get('{id?}', function ($id = 1) {
+        // 处理 /user/{id} 路由，路由命名为 user.show
+        return route('user.show');
+    })->name('show');                                      //變成user.show 
+    Route::get('posts', function () {
+        // 处理 /user/posts 路由，路由命名为 user.posts
+    })->name('posts');                                     //變成user.posts
+});
+
+全域約束
+到app/Providers/RouteServiceProvider裡面的boot()
+
+Route::pattern('id', '[0-9]+');
