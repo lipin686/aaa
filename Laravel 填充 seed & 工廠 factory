@@ -1,0 +1,43 @@
+創建
+php artisan make:seeder UsersTableSeeder
+
+新增內容
+public function run()
+{
+    DB::table('users')->insert([
+        'name' => str_random(10),
+        'email' => str_random(10).'@gmail.com',
+        'password' => bcrypt('secret'),
+    ]);
+}
+
+執行填充
+php artisan db:seed --class=UsersTableSeeder
+
+一次執行多的填充
+到\database\seeds\DatabaseSeeder裡新增
+public function run()
+{
+    $this->call(UsersTableSeeder::class);
+    $this->call(A::class);                        //其他填充表
+    $this->call(B::class);
+}
+
+php artisan db:seed                           //執行在DatabaseSeeder裡的run()
+
+以上用完只會新增1筆  偏爛 所以要有factory無情登場
+以下用新增使用者來作範例 如果要添加其他的資料表 修改App\User這個面向 
+$factory->define(App\User::class, function (Faker $faker) {
+    return [
+        'name' => $faker->name,
+        'email' => $faker->unique()->safeEmail,
+        'email_verified_at' => now(),
+        'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
+        'remember_token' => str_random(10),
+    ];
+});
+到seed\UsersTableSeeder修改run()
+public function run()
+{
+    factory(\App\User::class, 5)->create();     //5=5筆資料
+}
