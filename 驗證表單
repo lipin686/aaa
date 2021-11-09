@@ -1,0 +1,110 @@
+到Controller新增
+$this->validate($request, [
+    'title' => 'bail|required|string|between:2,32',
+    'url' => 'sometimes|url|max:200',
+    'picture' => 'nullable|string'
+]);
+return response('表单验证通过');
+
+到View新增
+@if ($errors->any())
+   <div class="alert alert-danger">
+       <ul>
+           @foreach ($errors->all() as $error)
+               <li>{{ $error }}</li>
+           @endforeach
+       </ul>
+   </div>
+@endif
+
+設定錯誤提示文字
+$this->validate($request, [
+   'title' => 'bail|required|string|between:2,32',
+   'url' => 'sometimes|url|max:200',
+   'picture' => 'nullable|string'
+], [
+   'title.required' => '标题字段不能为空',
+   'title.string' => '标题字段仅支持字符串',
+   'title.between' => '标题长度必须介于2-32之间',
+   'url.url' => 'URL格式不正确，请输入有效的URL',
+   'url.max' => 'URL长度不能超过200',
+]);
+
+使用門面 好處是能不限定地方使用
+use Illuminate\Validation\Validator
+
+Validator::make($request->all(), [
+   'title' => 'bail|required|string|between:2,32',
+   'url' => 'sometimes|url|max:200',
+   'picture' => 'nullable|string'
+], [
+   'title.required' => '标题字段不能为空',
+   'title.string' => '标题字段仅支持字符串',
+   'title.between' => '标题长度必须介于2-32之间',
+   'url.url' => 'URL格式不正确，请输入有效的URL',
+   'url.max' => 'URL长度不能超过200',
+])->validate();
+
+移出Controller 到app/Http/Requests
+php artisan make:request SubmitFormRequest
+
+public function authorize()               //authorize() 方法用于检查用户权限，如果返回 false 则表示用户无权提交表单，会抛出权限异常中止请求
+{
+    return true;                          //預設是flase 改成true 
+}
+
+public function rules()                   //跟在controller一樣 設定約束
+{
+    return [
+        'title' => 'bail|required|string|between:2,32',
+        'url' => 'sometimes|url|max:200',
+        'picture' => 'nullable|string'
+    ];
+}
+
+public function messages()                //修改錯誤提示文字
+{
+    return [
+        'title.required' => '标题字段不能为空',
+        'title.string' => '标题字段仅支持字符串',
+        'title.between' => '标题长度必须介于2-32之间',
+        'url.url' => 'URL格式不正确，请输入有效的URL',
+        'url.max' => 'URL长度不能超过200',
+    ];
+}
+
+public function attributes()                   //錯誤時的名稱顯示 跟下面的rule有關聯
+{
+    return [
+        'title' => '名稱',
+        'url' => '網址',
+        'picture' => '圖片'
+    ];
+}
+
+上面設定好後 就可以去controller套用 執行controller前會先去執行驗證 
+public function form(SubmitFormRequest $request)
+{
+    return response('表单验证通过');
+}
+
+自定義規則約束
+php artisan make:rule SensitiveWordRule       //會在app裡新增一個Rules子目錄然後新增設定的檔案
+
+public function passes($attribute, $value)
+{
+    return strpos($value, '敏感词') === false;
+}
+
+public function message()                     //passes()設定好後到message()設定好return
+{
+    return ':attribute输入字段中包含敏感词';
+}
+
+'title' => [                                  //然後在rules()需要的欄位上新增 這我只新增在title 也可以套用每一個 在各自其中新增即可
+    'bail',
+    'required',
+    'string',
+    'between:2,32',
+    new SensitiveWordRule()
+]
