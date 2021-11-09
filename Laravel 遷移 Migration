@@ -17,8 +17,8 @@ Artisan操作:
 1.執行 php artisan migrate
 2.回滾 php artisan migrate:rollback --step=5  //回到倒數第五個
   php artisan migrate:reset                   //所有
-3.回滾後重建 php artisan migrate:refresh            //全部回滾後重新建立
-  php artisan migrate:refresh --seed          //填充假資料
+3.回滾後重建 php artisan migrate:refresh       //全部回滾後重新建立
+  php artisan migrate:refresh --seed          //回滾後填充假資料
   php artisan migrate:refresh --step=5        //從倒數第五個開始回滾後重新建立
 4.刪除後重建 php artisan migrate:fresh         //同上 
 
