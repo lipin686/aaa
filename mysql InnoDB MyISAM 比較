@@ -1,0 +1,24 @@
+MyISAM 是在 MySQL 5.1 之前的 default engine，InnoDB 則是 MySQL 5.5 之後的 default engine。
+大多數不換 InnoDB 有幾個原因：
+1. InnoDB 佔用的空間比較大
+2. InnoDB 不好備份
+3. MyISAM 效能比較好（只讀）
+
+兩者差異:
+InnoDB:
+1.InnoDB 支援Row-level 鎖定
+2.處理大量資料時效能較好
+3.支援外鍵
+4.支援交易，可以commit和rollback
+
+MyISAM:
+1.MyISAM 支援Table-level的鎖定
+2.效能好 讀 速度較快
+3.不支援外鍵
+4.不支援交易。不能commit和rollback
+5.支援全文搜索(Innodb要到5.6.4以上才支援)
+
+使用情況:
+當需要大量使用SELECT 而不用寫入功能 => MyISAM比較好
+需要全文搜索但版本不到5.6.4 => MyISAM比較好
+其他情況都建議使用 => InnoDB
