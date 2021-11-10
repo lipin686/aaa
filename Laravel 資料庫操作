@@ -1,0 +1,47 @@
+Laravel資料庫操作有三種 分別是原生、查詢建構器、Eloquent模型
+
+原生:
+使用DB門面來執行SQL指令
+DB::statement('drop table `users`');
+DB::statement('create table `users` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT,`name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL)');
+以上不推薦 因為能夠用資料庫遷移Migrations達成
+
+$name = 'Taeyeon';
+$users = DB::select('select * from `users` where `name` = ?', [$name]);
+$users = DB::select('select * from `users` where `name` = :name', ['name' => $name]);
+
+$name = str_random(10);
+$email = str_random(10) . '@163.com';
+$password = bcrypt('secret');
+$flag = DB::insert('insert into `users` (`name`, `email`, `password`) values (?, ?, ?)', [$name, $email, $password]);
+
+$name = str_random(8);
+$id = 8;
+$affectedRows = DB::update('update `users` set `name` = ? where id = ?', [$name, $id]);
+
+查詢建構器:
+$users = DB::table('users')->get();
+$users = DB::table('users')->where('name', 'IU')->get();                                            //get all
+$user = DB::table('users')->where('name', 'IU')->first();                                           //返回查詢的第一筆
+$user = DB::table('users')->select('id', 'name', 'email')->where('name', 'IU')->first();            //指定要拿到的欄位
+$flag = DB::table('users')->insert([                                                                //新增
+    'name' => str_random(10),
+    'email' => str_random(8) . '@163.com',
+    'password' => bcrypt('secret')
+]);
+$userId = DB::table('users')->insertGetId([                                                         //插入之后获取对应记录的主键 ID
+    'name' => str_random(10),
+    'email' => str_random(8) . '@qq.com',
+    'password' => bcrypt('secret')
+]);
+DB::table('users')->insert([                                                                        //一次多個新增 但只要有一條報錯 全部都不會新增成功
+    ['name' => str_random(10), 'email' => str_random(8) . '@qq.com', 'password' => bcrypt('123')],
+    ['name' => str_random(10), 'email' => str_random(8) . '@qq.com', 'password' => bcrypt('456')],
+    ['name' => str_random(10), 'email' => str_random(8) . '@qq.com', 'password' => bcrypt('789')],
+]);
+$affectedRows = DB::table('users')->where('id', '>', 13)->update(['name' => str_random(8)]);        //更新資料 會返回受影響行數(返回行數我是覺得沒啥用)
+$affectedRows = DB::table('users')->where('id', '>=', $id)->delete();                               //刪除資料 同上
+$affectedRows = DB::table('users')->truncate();                                                     //設定重置自增id回歸1
+
+Eloquent ORM 模型:
+另外開一頁說明
