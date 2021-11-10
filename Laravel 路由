@@ -80,3 +80,10 @@ Route::name('user.')->prefix('user')->group(function () {
 到app/Providers/RouteServiceProvider裡面的boot()
 
 Route::pattern('id', '[0-9]+');
+
+訪問限制:
+Route::middleware('throttle:20,1')->group(function () {    //1分鐘內只能20次 //防止爬蟲 //驗證失敗次數  //20也可以改成變數 統一管理就不用每個都要改
+    Route::get('/user', function () {
+        //
+    });
+});
