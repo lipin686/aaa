@@ -48,3 +48,20 @@ DB::table('users')                                                      //select
             ->whereRaw('posts.user_id = users.id');
     })
 ->get();
+$users = DB::table('posts')
+    ->orderBy('created_at', 'desc')
+    ->get();
+$posts = DB::table('posts')                                             //select user_id, sum(views) as total_views from `posts` group by `user_id` having `total_views` >= 10;
+    ->groupBy('user_id')
+    ->selectRaw('user_id, sum(views) as total_views')
+    ->having('total_views', '>=', 10)
+    ->get();
+$posts = DB::table('posts')->orderBy('created_at', 'desc')              //select * from `posts` where `views` > 0 order by `created_at` desc limit 5 offset 10;
+    ->where('views', '>', 0)
+    ->skip(10)->take(5)                                                 //上下功能一樣 寫法不同 都可使用
+    ->get();    
+$posts = DB::table('posts')->orderBy('created_at', 'desc')              //select * from `posts` where `views` > 0 order by `created_at` desc limit 5 offset 10;
+    ->where('views', '>', 0)
+    ->offset(10)->limit(5)
+    ->get();
+    
