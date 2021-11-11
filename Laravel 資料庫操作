@@ -1,6 +1,5 @@
 Laravel資料庫操作有三種 分別是原生、查詢建構器、Eloquent模型
-Eloquent同時使用查詢建構器，兩個的差別就是一個是自訂的門面(User::where(.....))一個是DB門面(DB::table('user')->where(......))
-所以通常直接使用Eloquent方便自訂管理設定
+实际上，Eloquent 模型类底层的查询也是基于查询构建器来实现的，你可以在模型类上调用所有查询构建器的 Where 查询方法，同样是以流接口的模式构建方法链调用即可
 原生:
 使用DB門面來執行SQL指令
 DB::statement('drop table `users`');
