@@ -103,3 +103,38 @@ $post = Post::onlyTrashed()->where('views', 0)->get();                     //只
 $post->restore();                                                          // 恢复单条记录
 Post::onlyTrashed()->where('views', 0)->restore();                         // 恢复多条记录
 $post->forceDelete();                                                      //物理刪除
+
+訪問器
+public function getDisplayNameAttribute()                                  //注意 這裡名字採用驼峰格式 會依照名字不同呼叫的變數也會不同 這裡的範例是$post->display_name
+{                                                                          //而且名字不能和資料庫的同名，不然會有資料循環引用而報錯
+    return $this->nickname ? $this->nickname : $this->name;                //此例中不能将访问器方法名设置为 getNameAttribute 或 getNickNameAttribute
+}                                                                          //設定完後，就可以在controller用門面寫$post->display_name獲得暱稱或是名字
+
+修改器
+public function setCardNoAttribute($value)                                 //跟上面一樣都是用駝峰格式 此例中對應的是card_no
+{
+    $value = str_replace(' ', '', $value);                                 //将所有空格去掉
+    $this->attributes['card_no'] = encrypt($value);                        //加密並寫到card_no裡面
+}
+
+$user = User::find(1);                                                     //資料表要有一個card_no的欄位，可能原本是空的
+$user->card_no = '6222020903001483077';                                    //假設這個數字是信用卡號
+$user->save();                                                             //將資料寫到資料庫中
+
+public function getCardNumAttribute()                                      //呼叫的變數是 card_num
+{                                                                          
+    if (!$this->card_no) {
+        return '';
+    }
+    $cardNo = decrypt($this->card_no);                                     //不能直接把加密後的直接顯給使用者看，所以要進行解密後再用*改寫防止洩漏
+    $lastFour = mb_substr($cardNo, -4);
+    return '**** **** **** ' . $lastFour;                   
+}
+
+数组 & JSON 转化:
+protected $casts = [                                                       //當資料庫是json時都要用json_encode進行編碼，解碼用json_decode，有更方便的方式能達成
+    'settings' => 'array'                                                  //把在資料庫中是json的欄位在model設定成array，資料庫回傳過來就會自動轉換了
+];
+$user = User::find(1);                                                     
+$user->settings = ['city' => '杭州', 'hobby' => ['读书','撸码']];           //這裡用array的方式寫入，但資料庫中會是json 直接讀取出來會變成array 很方便 model幫忙轉換
+$user->save();
