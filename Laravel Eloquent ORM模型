@@ -78,3 +78,28 @@ protected $guarded = ['*'];                                                //黑
 $post = Post::findOrFail(11);                                              //update 也是用批量賦值的方式 也一樣會套用白名單黑名單
 $post->fill($request->all());
 $post->save();
+
+軟刪除:                                                                     //只刪除邏輯，物理不刪除
+所谓物理删除就是彻底删除该记录，逻辑删除只是给这条记录打上一个「已删除」的标记，不再出现在查询结果中，但是并没有真正删除这条记录。
+php artisan make:migration alter_posts_add_deleted_at --table=posts
+Schema::table('posts', function (Blueprint $table) {
+   $table->softDeletes();
+});
+php artisan migrate 命令即可在 posts 表中新增一个 deleted_at 字段。该字段默认值为 NULL，表示没有被软删除。
+如果要在模型类中支持软删除，需要在对应模型类（在本例中是 Post 模型）中添加支持软删除的 Trait：
+use Illuminate\Database\Eloquent\SoftDeletes;
+class Post extends Model
+{
+    use SoftDeletes;
+    protected $guarded = ['user_id'];
+}
+$post = Post::findOrFail(32);                                               //刪除 原本的刪除是物理刪除 但只要面向有加上SoftDeletes 刪除就變成軟刪除了
+$post->delete();
+if ($post->trashed()) {
+    dump('该记录已删除');
+}
+$post = Post::withTrashed()->find(32);                                     //可以查到已經被軟刪除的資料
+$post = Post::onlyTrashed()->where('views', 0)->get();                     //只需要获取被软删除的记录，这可以通过 onlyTrashed 方法来实现
+$post->restore();                                                          // 恢复单条记录
+Post::onlyTrashed()->where('views', 0)->restore();                         // 恢复多条记录
+$post->forceDelete();                                                      //物理刪除
