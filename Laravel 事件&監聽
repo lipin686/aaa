@@ -20,6 +20,8 @@ deleted：从数据库删除记录后触发
 restoring：恢复软删除记录前触发
 restored：恢复软删除记录后触发
 注：批量更新时不会触发相应事件，因为是直接走查询构建器完成的，绕过了模型方法。
+
+监听~~~~"每次"~~~~获取模型实例的事件并在日志中记录查询到的用户信息:
 // app/Providers/EventServiceProvider.php
 
 public function boot()
@@ -30,4 +32,60 @@ public function boot()
     User::retrieved(function ($user) {
         Log::info('从模型中获取用户[' . $user->id . ']:' . $user->name);
     });
+}
+執行程式:
+$user = User::find(1);
+$users = User::whereBetween('id', [1, 5])->get();
+結果:
+[2018-12-05 01:31:48] local.INFO: 从模型中获取用户[1]:学院君  
+[2018-12-05 01:31:49] local.INFO: 从模型中获取用户[1]:学院君  
+[2018-12-05 01:31:49] local.INFO: 从模型中获取用户[2]:Prof. Toni Collier  
+[2018-12-05 01:31:49] local.INFO: 从模型中获取用户[3]:Prof. Lenny Abernathy V  
+[2018-12-05 01:31:49] local.INFO: 从模型中获取用户[5]:Jaeden Oberbrunner DDS
+
+上面是每次執行程式時會做什麼，最常使用的情況就是log，但大部分是在特定情況時才執行，像是登入後做某事，
+或是更改密碼會寄郵件驗證碼等(不一定要溝通資料庫)，以下是特定情況才會執行:
+// app/Providers/EventServiceProvider.php
+
+protected $listen = [                                                                       //輸入$listen資料，設定檔案名稱
+    'App\Events\UserLogin' => [
+        'App\Lisenter\DoSomething1',
+        'App\Lisenter\Dosomething2',
+    ],
+];
+
+php artisan event:generate                                                                  //如果有在EventDerviceProvider有輸入$listen，會自動新增設定的兩個檔案
+
+以下是Lisenter的檔案
+<?php   
+
+namespace App\Lisenter;
+
+use App\Events\UserLogin;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class DoSomething1
+{
+    /**
+     * Create the event listener.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Handle the event.
+     *
+     * @param  UserLogin  $event
+     * @return void
+     */
+    public function handle(UserLogin $event)
+    {
+        //要做的事情寫在這裡                                                 
+        info('do something1');
+    }
 }
