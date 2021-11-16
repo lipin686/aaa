@@ -1,0 +1,117 @@
+Eloquent 模型支持的关联关系包括以下七种：
+
+一对一
+一对多
+多对多
+远层一对多
+多态关联（一对一）
+多态关联（一对多）
+多态关联（多对多）
+
+一對一
+例子:我只有一個身分證號碼，身分證號碼對應的就是我 
+在 User 模型类中通过 hasOne 方法定义其与 UserProfile 的一对一关联：
+public function profile()
+{
+    return $this->hasOne(UserProfile::class);
+}
+
+User 模型实例上通过关联方法名作为动态属性访问与其对应的 UserProfile 模型实例了：
+$user = User::findOrFail(1);
+$profile = $user->profile;                                                      //這個名稱就是上面的方法名稱
+這樣就拿到profile裡面對應id的資料了
+
+底層:
+public function hasOne($related, $foreignKey = null, $localKey = null)
+$related:要指定的資料表
+$foreignKey:對方要關聯的欄位(默認是自己的資料表名稱加上 _id 例user_id)
+$localKey:自己要關聯的欄位(默認是私鑰，默認是id)
+所以如果對方的資料表欄位對應的不是自己資料表名稱加上 _id 或是私鑰不是id，就要寫成這樣:
+return $this->hasOne(UserProfile::class,'user1111_id','uid');                   //盡量依照默認的去設定，比較有規律，也好管理，如果真的不一樣那就要這樣設定
+
+有时候我们可能需要反过来通过 UserProfile 反查所属的 User 模型
+我们在 UserProfile 模型类定义其与 User 模型的关联如下：
+public function user()                                                          //這個方法名稱可以自訂，呼叫的時候一致即可
+{
+    return $this->belongsTo(User::class);
+}
+
+$profile = UserProfile::findOrFail(2);
+$user = $profile->user;                                                         //呼叫模型裡的方法
+
+一對多:
+例子:一个用户可以发布多篇文章，反过来，一篇只能归属于一个用户
+
+public function posts()
+{
+    return $this->hasMany(Post::class);                                         //hasOne改成hasMany就可 Post裡面的belongsTo不用改 可以想像成對方只能隸屬於一個對象 所以跟一對一 一樣
+}                                                                               //而使用者從一對一變成一對多 所以就要改成hasMany 
+
+多對多:
+例子:每篇文章设置标签，一篇文章往往有多个标签，反过来，一个标签可能会归属于多篇文章
+多对多需要借助一张中间表才能建立关联关系
+現在有三個表分別是 posts post_tags tags
+先到 Post模型設定
+public function tags()
+{
+    return $this->belongsToMany(Tag::class, 'post_tags');                       //第一個參數要指向要查詢的 也就是tag模型
+}                                                                               //第二個參數插入變成指定中間的關聯表，後面欄位的跟上面的一樣
+再來到Tag模型中設定
+public function posts()
+{
+    return $this->belongsToMany(Post::class, 'post_tags');                       //概念一樣 但是第二個參數插入變成指定中間的關聯表，後面欄位的一樣
+}
+public function tags()
+{
+    return $this->belongsToMany(Tag::class, 'post_tags')->withPivot('user_id')->withTimestamps();     //如果要拿到中間表的資料 可以用withPivot去抓 或是有時間戳專用的withTimestamps
+}
+要獲取中間表資料 $tags->pivot->user_id
+如果覺得pivot不喜歡 也可自訂名稱
+$this->belongsToMany(Tag::class, 'post_tags')->as('taggable')->withTimestamps();
+$tags->taggable->created_at   
+
+with:渴求式加载
+接下來說明with 先看原本還沒使用前的樣子
+public function lst()
+{
+  $books  = Book::all();
+
+  foreach ($books as $book){
+  echo $book->auth->name;
+  }
+}
+這樣只會執行N+1次，多的那一次是他會先去掃自己資料表中全部資料，之後才會依照要求去掃關聯資料表執行N次
+A B C D
+select * from 'book'
+select * from 'art' where id = 1 limit 1;
+select * from 'art' where id = 2 limit 1;
+select * from 'art' where id = 3 limit 1;
+select * from 'art' where id = 4 limit 1;                                       //一共N+1筆資料
+
+public function lst()
+{
+   $books  = Book::with('art')->get();                                          //渴求式加载
+
+   foreach ($books as $book){
+   echo $book->auth->name;
+   }
+}
+select * from 'book'
+select * from 'art' where 'art' . 'id' in (1,2,3,4);                          //一共2筆資料
+
+範例:
+$posts = Post::with('author')                                                 //先執行自己的資料表要求，再把結果丟給關聯的資料表
+    ->where('views', '>', 0)
+    ->offset(1)->limit(10)
+    ->get();
+    
+select * from `posts` where `views` > 0 and `posts`.`deleted_at` is null limit 10 offset 0;           
+select * from `users` where `users`.`id` in (?, ?, ?, ?, ?, ?) and `email_verified_at` is not null
+
+指定要查询的欄位：
+$books  = Book::with('auth:id,name')->get()->toArray();                       //注：使用这个特性时，id字段是必须列出的。
+$books = Book::with(['auth' => function ($query) {                            
+    //约束条件
+    $query->where('name', 'like', '吴%');
+}])->get();
+dd($books);
