@@ -70,48 +70,56 @@ public function tags()
 $this->belongsToMany(Tag::class, 'post_tags')->as('taggable')->withTimestamps();
 $tags->taggable->created_at   
 
-with:渴求式加载
-接下來說明with 先看原本還沒使用前的樣子
-public function lst()
+远层一对多关联:
+例子:國家 使用者 文章 三個表 一個國家有多個使用者，使用者只能一個國家(一對多)，使用者能有多個文章，文章只能一個使用者發布(一對多)
+國家->使用者->文章  當我需要拿到這個國家全部的文章時 這樣就是遠層一對多關聯
+在國家countries表的Country模型類新增:
+public function posts()
 {
-  $books  = Book::all();
-
-  foreach ($books as $book){
-  echo $book->auth->name;
-  }
+    return $this->hasManyThrough(Post::class, User::class);                                             //第一個是遠層的面向 第二個是中間的面向 國家->使用者->文章
 }
-這樣只會執行N+1次，多的那一次是他會先去掃自己資料表中全部資料，之後才會依照要求去掃關聯資料表執行N次
-A B C D
-select * from 'book'
-select * from 'art' where id = 1 limit 1;
-select * from 'art' where id = 2 limit 1;
-select * from 'art' where id = 3 limit 1;
-select * from 'art' where id = 4 limit 1;                                       //一共N+1筆資料
 
-public function lst()
+一对一的多态关联 跟一對多的多態關聯
+
+
+例子:使用者只能有一個頭像，頭像也對應使用者，所以有一個 users表跟images表 一對一 
+這時候影片也要有一個縮略圖(也是一對一)，不可能單獨為這個開一個表，都要統一放在images表裡，這樣我就要修改images表的結構
+不只有影片有圖片，其他地方也會有，那我不就要新增到死。
+這時候多態關聯在這就派上用場
+在images表中新增 image_type和image_id
+image_type是指定是哪一個人的圖片 像是使用者、影片、公告等等
+image_id是type指定的表中 對應的id
+這樣就能區分哪個表 哪個對象的圖片，之後就只要改變這兩個欄位就可以應用全部情況了
+
+一對一跟一對多的差異是 這張表裡面會不會有多筆同一個對象的資料
+像是使用者只能有一個頭像，頭像也對應使用者 影片對應圖片 這樣就是使用一對一多態關聯
+歌手頁面可以多個評論 評論這張表中就會有多個該文章的id 
+另一個歌曲頁面也可以有多個評論 也是放在評論表中， 歌手頁面 <- 評論 -> 歌曲頁面  都是一對多 
+這樣就是一對多多態關聯
+
+一對一
+images表新增欄位 
+Schema::create('images', function (Blueprint $table) {
+    $table->increments('id');
+    $table->string('url')->comment('图片URL');
+    $table->morphs('imageable');                                                //這個會新增imageable_type和imageable_id
+    $table->timestamps();
+});
+
+images面向
+public function imageable()
 {
-   $books  = Book::with('art')->get();                                          //渴求式加载
-
-   foreach ($books as $book){
-   echo $book->auth->name;
-   }
+    return $this->morphTo();
 }
-select * from 'book'
-select * from 'art' where 'art' . 'id' in (1,2,3,4);                          //一共2筆資料
 
-範例:
-$posts = Post::with('author')                                                 //先執行自己的資料表要求，再把結果丟給關聯的資料表
-    ->where('views', '>', 0)
-    ->offset(1)->limit(10)
-    ->get();
-    
-select * from `posts` where `views` > 0 and `posts`.`deleted_at` is null limit 10 offset 0;           
-select * from `users` where `users`.`id` in (?, ?, ?, ?, ?, ?) and `email_verified_at` is not null
+user和video面向:
+public function image()
+{
+    return $this->morphOne(Image::class, 'imageable');
+}
 
-指定要查询的欄位：
-$books  = Book::with('auth:id,name')->get()->toArray();                       //注：使用这个特性时，id字段是必须列出的。
-$books = Book::with(['auth' => function ($query) {                            
-    //约束条件
-    $query->where('name', 'like', '吴%');
-}])->get();
-dd($books);
+
+
+
+
+
