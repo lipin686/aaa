@@ -1,0 +1,46 @@
+
+with:渴求式加载
+接下來說明with 先看原本還沒使用前的樣子
+public function lst()
+{
+  $books  = Book::all();
+
+  foreach ($books as $book){
+  echo $book->auth->name;
+  }
+}
+這樣只會執行N+1次，多的那一次是他會先去掃自己資料表中全部資料，之後才會依照要求去掃關聯資料表執行N次
+A B C D
+select * from 'book'
+select * from 'art' where id = 1 limit 1;
+select * from 'art' where id = 2 limit 1;
+select * from 'art' where id = 3 limit 1;
+select * from 'art' where id = 4 limit 1;                                       //一共N+1筆資料
+
+public function lst()
+{
+   $books  = Book::with('art')->get();                                          //渴求式加载
+
+   foreach ($books as $book){
+   echo $book->auth->name;
+   }
+}
+select * from 'book'
+select * from 'art' where 'art' . 'id' in (1,2,3,4);                          //一共2筆資料
+
+範例:
+$posts = Post::with('author')                                                 //先執行自己的資料表要求，再把結果丟給關聯的資料表
+    ->where('views', '>', 0)
+    ->offset(1)->limit(10)
+    ->get();
+    
+select * from `posts` where `views` > 0 and `posts`.`deleted_at` is null limit 10 offset 0;           
+select * from `users` where `users`.`id` in (?, ?, ?, ?, ?, ?) and `email_verified_at` is not null
+
+指定要查询的欄位：
+$books  = Book::with('auth:id,name')->get()->toArray();                       //注：使用这个特性时，id字段是必须列出的。
+$books = Book::with(['auth' => function ($query) {                            
+    //约束条件
+    $query->where('name', 'like', '吴%');
+}])->get();
+dd($books);
