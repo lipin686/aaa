@@ -97,7 +97,7 @@ image_id是type指定的表中 對應的id
 另一個歌曲頁面也可以有多個評論 也是放在評論表中， 歌手頁面 <- 評論 -> 歌曲頁面  都是一對多 
 這樣就是一對多多態關聯
 
-一對一
+
 images表新增欄位 
 Schema::create('images', function (Blueprint $table) {
     $table->increments('id');
@@ -111,15 +111,38 @@ public function imageable()
 {
     return $this->morphTo();
 }
-
+一對一
 user和video面向:
 public function image()
 {
-    return $this->morphOne(Image::class, 'imageable');
+    return $this->morphOne(Image::class, 'imageable');                            //對應資料表中的morphs名稱
 }
 
+一對多
+singer和song面向:                                                                  //假設換成歌手頁面跟歌曲頁面 因為上面的頭像和影片圖片 是一對一 跟這個一對多不符合
+public function comments()
+{
+    return $this->morphMany(Comment::class, 'commentable');                       //對應資料表中的morphs名稱
+}
 
+執行就跟之前的一樣 以下是範例:
+$post = Post::with('comments')->findOrFail(23);                                   //拿到Post表中id=23的 把id=23丟到comments表中morphs裡面對應的commentable_id 
+                                                                                  //因為是從Post面向丟過來的 所以也會比對commentable_type=App\Post
+$comments = $post->comments;                                                      //比對符合commentable_id=23然後顯示出comments表中的對應資料
+對應SQL語法:
+select * from `comments`
+    where `comments`.`commentable_id` in (23)                                     
+    and `comments`.`commentable_type` = "App\Post"                                 
 
+多对多的多态关联
+中间表只需要一个标签 ID 和文章 ID 即可建立它们之间的关联，
+但当我们添加新的内容类型，比如页面、视频、音频，它们也有标签，而且完全可以共享一张标签表，
+此时仅仅一个文章 ID 已经满足不了定义内容与标签之间的关联了，
+所以此时引入多对多的多态关联，和前面两种多态关联思路一样，只是在多对多关联中，我们需要在中间表中引入类型字段来标识内容类型，
+将原来的文章ID调整为内容ID，这样就可以从数据库层面满足不同内容类型与标签之间的关联了。
 
+原本多對多是 文章 -> 中間表 <-標籤
+多對多多態關聯是 文章 -> 標籤中間表 <- 標籤 或是更多指向標籤中間表的
 
+在標籤中間表裡面一樣新增morphs就可達成共用標籤的功能 
 
