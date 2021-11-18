@@ -1,3 +1,5 @@
+https://laravelacademy.org/post/9725
+
 Eloquent 模型支持的关联关系包括以下七种：
 
 一对一
@@ -145,4 +147,29 @@ select * from `comments`
 多對多多態關聯是 文章 -> 標籤中間表 <- 標籤 或是更多指向標籤中間表的
 
 在標籤中間表裡面一樣新增morphs就可達成共用標籤的功能 
+原本的中間表不屬於任何人 現在標籤中間表屬於標籤 所以欄位中要改成morphs的是文章那部分
+原本中間表:"post_id" tag_id
+標籤中間表:"XXX_id,XXX_type",tag_id
+
+
+Schema::create('taggables', function (Blueprint $table) {                           //中間表名稱會跟前綴搭配 要設定前綴的複數型態，才能有默認，不然要手動設定
+    $table->increments('id');
+    $table->integer('tag_id');                                                      //這裡就是直接寫死隸屬於標籤 而不是像其他的是浮動的
+    $table->morphs('taggable');                                                     //跟之前一樣是前綴，但跟上面的名稱有互相搭配 要注意!!!!
+    $table->index('tag_id');
+    $table->unique(['tag_id', 'taggable_id', 'taggable_type']);
+    $table->timestamps();
+});
+
+Tag 模型类
+public function posts()
+{                    //這個比較麻煩，共有7個參數可輸入，盡量使用默認，第一個是想要關聯的面向，第二個是中間表的前綴。第三個很重要!!!!!是中間表的名稱，而且默認是第二個的複數型態!!!，
+    return $this->morphedByMany(Post::class, 'taggable');   //後面的如果依照規定設定 就跟之前的一樣都是設定外件名稱等依照默認就好 
+} 
+
+Post模型類
+public function tags()
+{
+    return $this->morphToMany(Tag::class, 'taggable');  //基本上跟上面一樣 指定想關聯的 中間表的前綴名稱 中間表名稱 默認是前綴的複數型態
+}
 
