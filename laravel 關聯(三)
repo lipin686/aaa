@@ -1,0 +1,35 @@
+关联插入与更新
+一对多关联记录插入 
+某篇文章上新增一条评论
+$post = Post::findOrFail(1);  
+$faker = \Faker\Factory::create();                                                  //因為目前沒有其他使用者新增的資料，所以用假資料代替，
+$comment = new Comment();
+$comment->content = $faker->paragraph;                                              //這裡用假資料代替，插入的概念一樣
+$comment->user_id = mt_rand(1, 15);                                                 //同上
+$post->comments()->save($comment);                                                  //將資料存進post和Comment
+Eloquent 底层会自动帮我们维护 commentable_id 和 commentable_type 字段。               //會幫忙新增commentable_id 和 commentable_type 
+还可以通过 saveMany 方法一次插入多条关联记录，前提是为关联模型配置了批量赋值，比如我们为 Comment 模型类配置白名单 $fillable 属性如下
+protected $fillable = [
+    'content', 'user_id'
+];
+$post = Post::findOrFail(1);
+$faker = \Faker\Factory::create();
+$post->comments()->saveMany([
+    new Comment(['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]),
+    new Comment(['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]),
+    new Comment(['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]),
+    new Comment(['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]),
+    new Comment(['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)])
+]);
+此外，我们还可以通过 create/createMany 方法来插入关联数据，与 save/saveMany 方法不同的是，这两个方法接收的是数组参数：
+// 插入一条记录
+$post->comments()->create([
+    'content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)
+]);
+
+// 插入多条记录
+$post->comments()->createMany([
+    ['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)],
+    ['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)],
+    ['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]
+]);
