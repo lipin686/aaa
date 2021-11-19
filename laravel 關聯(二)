@@ -1,6 +1,26 @@
+懶惰式加載:
+$user = User::findOrFail(1);
+$posts = $user->posts;                                              //這是用戶實例
+                            
+$user = User::findOrFail(1);                                        //过滤出该用户发布的文章中浏览数大于 1 的结果
+$posts = $user->posts()->where('views', '>', 0)->get();             //關聯關係實例 使用了查詢建構器 等於是可以對資料進行更複雜的查詢
+
+$users = User::has('posts')->get();                                 //获取所有发布过文章的用户
+$users = User::has('posts', '>', 1)->get();                         //进一步过滤发布文章数量大于 1 的用户
+$users = User::has('posts.comments')->get();                        //通过嵌套关联查询的方式过滤发布的文章有评论的用户
+$posts = Post::has('comments')->orHas('tags')->get();               //orHas 方法，顾名思义，它会执行一个 OR 查询，比如我们想要过滤包含评论或标签的文章：
+$users = User::whereHas('posts', function ($query) {                //还可以通过 whereHas/orWhereHas 方法基于闭包函数定义查询条件，
+    $query->where('title', 'like', 'Laravel学院%');                 //比如我们想要过滤发布文章标题中包含「Laravel学院」的所有用户
+})->get();
+$users = User::doesntHave('posts')->get();                          //没有发布过文章的用户，可以通过 doesntHave 方法实现 doesntHave/orDoesntHave
+$post = Post::withCount('comments')->findOrFail(32);                //其中包含了 comments_count 字段，通过这个字段就可以访问该文章的评论数。
+                                                                    //如果要统计其它关联模型结果数量字段，可以依次类推，对应字段都是 {relation}_count 结构。
+注：实际开发中为了提高查询性能，我们往往是在 posts 表中冗余提供一个 comments_count 字段，每新增一条评论，该字段值加 1，查询的时候直接取该字段即可，从而提高查询的性能。
+
+以上都是懶惰式加載，如果不考慮性能可以使用，但如果有考慮到性能，還是建議使用渴求式加載，以下會說明性能差異
 
 with:渴求式加载
-接下來說明with 先看原本還沒使用前的樣子
+接下來說明with 先看懶惰式加載的樣子
 public function lst()
 {
   $books  = Book::all();
@@ -38,9 +58,33 @@ select * from `posts` where `views` > 0 and `posts`.`deleted_at` is null limit 1
 select * from `users` where `users`.`id` in (?, ?, ?, ?, ?, ?) and `email_verified_at` is not null
 
 指定要查询的欄位：
-$books  = Book::with('auth:id,name')->get()->toArray();                       //注：使用这个特性时，id字段是必须列出的。
-$books = Book::with(['auth' => function ($query) {                            
-    //约束条件
-    $query->where('name', 'like', '吴%');
-}])->get();
-dd($books);
+$post = Post::with('author:id,name')->findOrFail(1);                       //注：使用这个特性时，id字段是必须列出的。
+$post = Post::with(['comments' => function ($query) {
+    $query->where('content', 'like', 'Laravel学院%')
+        ->orderBy('created_at', 'desc');
+}])->where('id', '<', 5)->get();
+select * from `posts` where `id` < 5  and `posts`.`deleted_at` is null      //底層sql語法
+select * from `comments` where `comments`.`commentable_id` in (1, 2, 3, 4)
+  and `comments`.`commentable_type` = "App\Post"
+  and `content` like "Laravel学院%"
+  and `comments`.`deleted_at` is null
+order by
+  `created_at` desc
+  
+  
+懒惰渴求式加载
+有时候，你可能觉得一次性加载所有关联数据有点浪费，对于特定条件下才使用的数据我们可以通过动态条件判断进行渴求式加载或者延迟加载。
+我们将这种加载叫做懒惰渴求式加载，这种加载可以通过 load 方法实现：
+$users = User::all();
+$condition = true;
+
+if ($condition) {
+    $users->load('posts');
+}
+懒惰渴求式加载也是渴求式加载，只不过是在需要的时候才去加载，所以加上了「懒惰」这个修饰词，底层执行的 SQL 查询语句和渴求式加载是一样的：
+它也支持通过闭包传递额外的约束条件:
+$posts = Post::where('id', '<=', 3)->get();
+$posts->load(['comments' => function ($query) {
+    $query->where('content', 'like', 'Laravel学院%')
+        ->orderBy('created_at', 'desc');
+}]);
