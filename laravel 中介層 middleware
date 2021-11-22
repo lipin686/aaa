@@ -1,0 +1,62 @@
+php artisan make:middleware OldMiddleware
+
+在這個中介層內我們只允許請求內的 age 變數大於 200 的才能存取路由，否則，我們會將用戶重新導向「home」這個 URI。
+<?php
+namespace App\Http\Middleware;
+use Closure;
+class OldMiddleware
+{
+    /**
+     * 執行請求過濾器。
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
+    {
+        if ($request->input('age') <= 200) {
+            return redirect('home');
+        }
+        //在應用程式處理請求前處理東西
+        return $next($request);
+        //在應用程式處理請求後處理東西
+    }
+}
+如果你要指派中介層給特定的路由，你得先將中介層在 app/Http/Kernel.php 設定一個好記的鍵，
+預設情況下，這個檔案內的 $routeMiddleware 屬性已包含了 Laravel 目前設定的中介層，你只需要在清單列表中加上一組自訂的鍵即可。
+protected $routeMiddleware = [
+    'aaa' => \App\Http\Middleware\aaa:class,
+    'auth' => \App\Http\Middleware\Authenticate::class,
+    'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+    'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+    'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+];
+Route::get('admin/profile', ['middleware' => 'aaa', function () {
+    //
+}]);
+Route::get('/', ['middleware' => ['aaa', 'auth'], function () {
+    //
+}]);
+Route::get('/', function () {
+    //
+}])->middleware(['aaa', 'auth']);
+
+中介層群組
+protected $middlewareGroups = [
+    'web' => [
+        \App\Http\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \App\Http\Middleware\VerifyCsrfToken::class,
+    ],
+
+    'api' => [
+        'throttle:60,1',
+        'auth:api',
+    ],
+];
+Route::group(['middleware' => ['web']], function () {
+    //
+});
