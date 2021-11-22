@@ -1,0 +1,76 @@
+@if (count($students) === 1) 
+    操场上只有一个同学
+@elseif (count($students) === 0)
+    操场上一个同学也没有
+@else
+    操场上有 {{ count($students) }} 个同学
+@endif
+
+@unless ($user->hasPaid())                  //等同於<?php if (!$condition):   就是反過來的
+    用户没有支付
+@endunless
+
+@isset($records)
+    // 记录被设置
+@endisset
+
+@empty($records)
+    // 记录为空
+@endempty
+
+@switch($i)
+    @case(1)
+        // $i = 1 做什么
+        @break
+
+    @case(2)
+        // $i = 2 做什么
+        @break
+
+    @default
+        // 默认情况下做什么
+@endswitch
+
+// for 循环
+@for ($i = 0; $i < $talk->slotsCount(); $i++) 
+    The number is {{ $i }}<br> 
+@endfor
+
+// foreach 循环
+@foreach ($talks as $talk)
+    {{ $talk->title }} ({{ $talk->length }} 分钟)<br> 
+@endforeach
+
+// while 循环  
+@while ($item = array_pop($items)) 
+    {{ $item->orSomething() }}<br> 
+@endwhile
+
+$loop->index            //當前循環迭代 從0開始
+$loop->iteration        //當前循環迭代 從1開始
+$loop->remaining
+$loop->count            //數組總數
+$loop->first            //是否為第一筆
+$loop->last             //是否為最後一筆
+$loop->depth            //當前循環的嵌套層級
+$loop->parent           //嵌套循環中的父層循環變量(上一層的)
+
+
+<ul> 
+@foreach ($pages as $page)
+    @if ($loop->first)
+        // 第一个循环迭代
+    @endif 
+    <li>{{ $loop->iteration }}: {{ $page->title }} 
+        @if ($page->hasChildren()) 
+        <ul> @foreach ($page->children() as $child) 
+            <li>{{ $loop->parent->iteration }}. {{ $loop->iteration }}: {{ $child->title }}</li> 
+            @endforeach 
+        </ul> 
+        @endif 
+    </li> 
+    @if ($loop->last)
+        // 最后一个循环迭代
+    @endif
+@endforeach 
+</ul>
