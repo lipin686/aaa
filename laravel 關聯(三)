@@ -33,3 +33,19 @@ $post->comments()->createMany([
     ['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)],
     ['content' => $faker->paragraph, 'user_id' => mt_rand(1, 15)]
 ]);
+
+如果外键字段 user_id 允许为空的话，当我们访问 Post 模型上的 author 属性时，默认返回为 null。
+Eloquent 允许我们为这种空对象定义一个默认的类型，这个对象的类型可以在定义关联关系的时候指定：
+public function author()
+{
+    return $this->belongsTo(User::class, 'user_id', 'id', 'author')
+        ->withDefault();
+}
+public function author()
+{
+    return $this->belongsTo(User::class, 'user_id', 'id', 'author')
+        ->withDefault([
+            'id' => 0,
+            'name' => '游客用户',
+        ]);
+}
