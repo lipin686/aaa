@@ -1,0 +1,71 @@
+<!-- 完整语法 -->
+<a v-bind:href="url"></a>
+<!-- 缩写 -->
+<a :href="url"></a>
+
+<!-- 完整语法 -->
+<a v-on:click="doSomething"></a>
+<!-- 缩写 -->
+<a @click="doSomething"></a>
+
+
+<div id="app">
+    <div v-html="message"></div>                      //直接寫到div其中
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: '<h1>菜鸟教程</h1>'
+  }
+})
+</script>
+
+<div id="app">
+    <pre><a v-bind:href="url">菜鸟教程</a></pre>        //v-bind是套用到html屬性 href id class等等
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    url: 'http://www.runoob.com'
+  }
+})
+</script>
+
+
+<div id="app">          
+    <p>{{ message }}</p>
+    <input v-model="message">                         //雙向綁定 資料變動 兩邊都會改 
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: 'Runoob!'
+  }
+})
+</script>
+
+<div id="app">
+  {{ message | capitalize }}                        //過濾器 把message變數丟到capitalize變數去判斷 
+</div>
+    
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: 'runoob'
+  },
+  filters: {
+    capitalize: function (value) {
+      if (!value) return ''
+      value = value.toString()
+      return value.charAt(0).toUpperCase() + value.slice(1)               //把runoob 的第一個字改成大寫 Runoob
+    }
+  }
+})
+</script>
