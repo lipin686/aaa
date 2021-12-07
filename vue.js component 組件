@@ -1,0 +1,90 @@
+全局组件
+<div id="app">
+    <runoob></runoob>
+</div>
+ 
+<script>
+// 注册
+Vue.component('runoob', {
+  template: '<h1>自定义组件!</h1>'
+})
+// 创建根实例
+new Vue({
+  el: '#app'
+})
+</script>
+
+局部组件
+<div id="app">
+    <runoob></runoob>
+</div>
+ 
+<script>
+var Child = {
+  template: '<h1>自定义组件!</h1>'
+}
+ 
+// 创建根实例
+new Vue({
+  el: '#app',
+  components: {
+    // <runoob> 将只在父模板可用
+    'runoob': Child
+  }
+})
+</script>
+
+prop 傳遞父組件資料到子組件
+<div id="app">
+    <div>
+      <input v-model="parentMsg">
+      <br>
+      <child v-bind:message="parentMsg"></child>
+    </div>
+</div>
+ 
+<script>
+// 注册
+Vue.component('child', {
+  // 声明 props
+  props: ['message'],
+  // 同样也可以在 vm 实例中像 "this.message" 这样使用
+  template: '<span>{{ message }}</span>'
+})
+// 创建根实例
+new Vue({
+  el: '#app',
+  data: {
+    parentMsg: '父组件内容'
+  }
+})
+</script>
+
+以下实例中使用 v-bind 指令将 todo 传到每一个重复的组件中：
+<div id="app">
+    <ol>
+    <todo-item v-for="item in sites" v-bind:todo="item"></todo-item>
+      </ol>
+</div>
+ 
+<script>
+Vue.component('todo-item', {
+  props: ['todo'],
+  template: '<li>{{ todo.text }}</li>'
+})
+new Vue({
+  el: '#app',
+  data: {
+    sites: [
+      { text: 'Runoob' },
+      { text: 'Google' },
+      { text: 'Taobao' }
+    ]
+  }
+})
+</script>
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+注意: prop 是单向绑定的：当父组件的属性变化时，将传导给子组件，但是不会反过来。
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
