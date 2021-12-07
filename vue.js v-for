@@ -1,0 +1,29 @@
+<div id="app">
+  <ol>
+    <li v-for="site in sites">                            //!!!重點 他是數組在後面 子元素在前面 跟 php的相反 foreach($datas as $data) php 是數組在前面!!!
+      {{ site.name }}
+    </li>
+  </ol>
+</div>
+ 
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    sites: [
+      { name: 'Runoob' },
+      { name: 'Google' },
+      { name: 'Taobao' }
+    ]
+  }
+})
+</script>
+
+
+<div id="app">
+  <ul>
+    <li v-for="(value, key, index) in object">        //也有key value用法 也有index用法
+     {{ index }}. {{ key }} : {{ value }}
+    </li>
+  </ul>
+</div>
