@@ -1,3 +1,5 @@
+例子 A匯錢給B 資料庫:A-1000 B+1000 兩個指令 其中一個失敗 兩個指令都要失敗 這時候就需要有以下原則
+
 Atomicity (原子性) : 資料操作不能只有部分完成。一次的 transaction 只能有兩種結果：成功或失敗
 Consistency (一致性)：transaction 完成前後，資料都必須永遠符合 schema 的規範，保持資料與資料庫的一致性
 Isolation (隔離性)：資料庫允許多個 transactions 同時對其資料進行操作，但也同時確保這些 transaction 的交叉執行，不會導致數據的不一致
