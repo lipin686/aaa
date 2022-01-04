@@ -55,3 +55,5 @@ db.col.find().pretty()
 不等于	     {<key>:{$ne:<value>}}    db.col.find({"likes":{$ne:50}}).pretty()	where likes != 50
 
 db.col.find({"by":"菜鸟教程", "title":"MongoDB 教程"}).pretty()               //WHERE by='菜鸟教程' AND title='MongoDB 教程
+db.col.find({$or:[{"by":"菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty()     //WHERE by='菜鸟教程' OR title='MongoDB 教程
+db.col.find({"likes": {$gt:50}, $or: [{"by": "菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty() //where likes>50 AND (by = '菜鸟教程' OR title = 'MongoDB 教程')
