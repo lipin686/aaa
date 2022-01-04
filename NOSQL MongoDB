@@ -1,0 +1,57 @@
+連接資料庫
+mongodb://fred:foobar@localhost/baz  //使用 fred使用者 密碼為foobar 網址是localhost 資料庫是 baz
+
+創建資料庫
+use runoob    //資料庫不存在就創建 資料庫存在就切換指定到該資料庫
+
+查看所有資料庫
+show dbs     //剛新建的資料庫不會出現在這裡 要在資料庫新增資料才會出現(等同於資料庫中有資料才顯示)
+db.runoob.insert({"name":"菜鸟教程"})       //新增指令 
+
+刪除資料庫
+db.dropDatabase()       刪除目前所指定的資料庫  所以要先移動到想要刪除的資料庫(use runoob)
+
+創建集合
+db.createCollection(name, options) 
+實例:db.createCollection("runoob")
+db.createCollection("mycol", { capped : true, autoIndexId : true, size : 
+   6142800, max : 10000 } )                             //capped如果等於true 代表是創建固定空間集合 就要指定後面的參數 
+但其實不用自己創建集合，當insert的時候MongoDB就會自動幫忙創建集合了(依照所輸入的名稱)
+db.mycol2.insert({"name" : "菜鸟教程"})
+show collections      //查看集合
+mycol2                //顯示結果
+
+刪除集合
+db.mycol2.drop()
+
+新增文檔
+db.col.insert({
+    title: 'MongoDB 教程', 
+    description: 'MongoDB 是一个 Nosql 数据库',
+    by: '菜鸟教程',
+    url: 'http://www.runoob.com',
+    tags: ['mongodb', 'database', 'NoSQL'],
+    likes: 100
+})
+
+更新文檔
+db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})            //這個只會更新第一條發現的文檔(假設裡面有很多筆不同的資料)
+db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}},{multi:true})    //要多條要加上multi:true參數
+
+刪除文檔
+db.col.remove({'title':'MongoDB'})         //條件判斷 等於的"整筆"刪除 每一筆資料都會去判斷 等同於 如果我有三筆資料 有兩筆資料title=MongoDB 那我輸入這個指令後我的資料筆數只剩一筆
+以上的舊版本適用  新版本官方不推薦
+db.inventory.deleteMany({ status : "A" })   //官方推薦用deleteMany 刪除等於A的全部文檔
+db.inventory.deleteOne( { status: "D" } )   //刪除等於A的 "一個文檔"
+
+查看文檔
+db.col.find().pretty()
+
+等于	      {<key>:<value>}	        db.col.find({"by":"菜鸟教程"}).pretty()	  where by = '菜鸟教程'
+小于	      {<key>:{$lt:<value>}}	  db.col.find({"likes":{$lt:50}}).pretty()	where likes < 50
+小于或等于	  {<key>:{$lte:<value>}}  db.col.find({"likes":{$lte:50}}).pretty()	where likes <= 50
+大于	      {<key>:{$gt:<value>}}   db.col.find({"likes":{$gt:50}}).pretty()	where likes > 50
+大于或等于	 {<key>:{$gte:<value>}}   db.col.find({"likes":{$gte:50}}).pretty()	where likes >= 50
+不等于	     {<key>:{$ne:<value>}}    db.col.find({"likes":{$ne:50}}).pretty()	where likes != 50
+
+db.col.find({"by":"菜鸟教程", "title":"MongoDB 教程"}).pretty()               //WHERE by='菜鸟教程' AND title='MongoDB 教程
