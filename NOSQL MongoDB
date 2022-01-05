@@ -34,6 +34,30 @@ db.col.insert({
     likes: 100
 })
 
+db.col.insertMany([
+{
+name: "heibai",
+age: 26,
+birthday: new Date(1998,08,23),
+createTime: new Timestamp(),
+Hobby: ["basketball", "football", "tennis"]
+},
+{
+name: "hei",
+age: 32,
+birthday: new Date(1989,08,23),
+createTime: new Timestamp(),
+Hobby: ["basketball", "tennis"]
+},
+{
+name: "ying",
+age: 46,
+birthday: new Date(1978,08,23),
+createTime: new Timestamp(),
+Hobby: ["tennis"]
+}
+])
+
 更新文檔
 db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})            //這個只會更新第一條發現的文檔(假設裡面有很多筆不同的資料)
 db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}},{multi:true})    //要多條要加上multi:true參數
@@ -57,3 +81,60 @@ db.col.find().pretty()
 db.col.find({"by":"菜鸟教程", "title":"MongoDB 教程"}).pretty()               //WHERE by='菜鸟教程' AND title='MongoDB 教程
 db.col.find({$or:[{"by":"菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty()     //WHERE by='菜鸟教程' OR title='MongoDB 教程
 db.col.find({"likes": {$gt:50}, $or: [{"by": "菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty() //where likes>50 AND (by = '菜鸟教程' OR title = 'MongoDB 教程')
+
+db.col.find({"title" : {$type : 2}})                           //用string的對應數字
+或
+db.col.find({"title" : {$type : 'string'}})                    //限制title的資料型態 = string的
+
+db.col.find({},{"title":1,_id:0}).limit(2)                     //限制查找的數量
+db.col.find({},{"title":1,_id:0}).limit(1).skip(1)             //限制查找的數量並且跳過一筆 所以會拿到第二筆資料(第一筆被跳過)優先度是先skip->limit
+db.col.find({},{"title":1,_id:0}).sort({"likes":-1})           //sort排序 1是升序 -1是降序 這裡是指定likes降序排序
+
+###skip(), limilt(), sort()三个放在一起执行的时候，执行的顺序是先 sort(), 然后是 skip()，最后是显示的 limit()。####
+
+設定索引 1是升序 -1是降序  這邊升降序的功能是 當我要查找時 它會自動排序
+
+让数据按照索引先将所有数据以航班号有序排列，再在航班号相同的数据集中按价格升序排列，
+这样在进行查询的时候，就可以准确的使用索引扫描4条数据，并且他们本身就是有序的，
+无需再进行额外的排序工作。以上实现了通过复合索引，让查询变得最优，这就是复合索引的作用。
+db.flights.createIndex({ flight: 1, price: 1 }, {name: "飛機"},{background: true})         //background是在後台執行 記得一定要加!!!! 保證不會干擾到其他正在執行的程序 name是索引名稱
+
+db.personInfos.createIndex({“address.city”:1})                                            //設定嵌套的索引 address裡面的city
+const personInfo = new Schema({                                                           //如果單純設定address整個文檔的索引 createIndex({“address”:1}) 那只有以下
+  name: { type: String, required: true },                                                 //db.personInfos.find({“address”:{“province”:”xxx”,”city”:”xxx”,""district":"xxx"}})
+  address: {                                                                              //这种完整匹配时才会使用到这个索引 使用db.personInfos.find({“address.city”:”xxx”})
+    province: { type: String, required: true },                                           //是不会使用到该索引的。
+    city: { type: String, required: true }, 
+    district: { type: String, required: true },
+  }
+}, {timestamps: true});
+db.flights.createIndex({ name: "hashed"},{background: true})                              //設定hash索引(哈希)(常用在中文) 但对于经常需要排序或查询范围查询的集合不要使用哈希索引。
+
+db.col.getIndexes()                                               //查看全部索引
+db.col.totalIndexSize()                                           //查看集合索引大小
+db.col.dropIndexes()                                              //删除集合所有索引
+db.col.dropIndex("索引名称")                                       //删除集合指定索引
+
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : "$likes"}}}])     //聚合函數aggregate 等同於 select by_user, count(likes) from mycol group by by_user
+$sum 可以換成 $avg $min $max 等函數
+
+db.article.aggregate(                                             //這只會將文檔中的_id跟title跟author讀取出來 其他會被隱藏 如果不要_id 那就是多打一個_id:0
+    { $project : {
+        title : 1 ,
+        author : 1 ,
+    }}
+ );
+db.articles.aggregate( [                                          //$match用于获取分数大于70小于或等于90记录，然后将符合条件的记录送到下一阶段$group管道操作符进行处理。
+   { $match : { score : { $gt : 70, $lte : 90 } } },
+   { $group: { _id: null, count: { $sum: 1 } } }
+] );
+
+備份和復原
+mongodump -h dbhost -d dbname -o dbdirectory                      //備份 dbhost 預設是127.0.0.1:27017 dbname test dbdirectory 存放路徑
+mongorestore -h <hostname><:port> -d dbname <path>                //復原 跟上面差不多
+
+MongoDB 监控
+mongostat 命令 和 mongotop 命令
+它会间隔固定时间获取mongodb的当前运行状态，并输出
+进入到你安装的MongoDB目录下的bin目录， 然后输入mongostat命令
+D:\set up\mongodb\bin>mongostat
