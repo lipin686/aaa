@@ -1,0 +1,60 @@
+PHP MongoDB 有兩個版本 php 舊版 跟PHP7 新版
+因為php7已經不支援舊版的了 所以這裡只寫新版 php7的連接方式與寫法
+
+MongoDB 類:
+MongoDB\Driver //驅動類
+MongoDB\BSON    //BSON類型與序列化函數
+MongoDB\Driver\Monitoring   //監控類
+MongoDB\Driver\Exception    //異常類
+
+操作類:
+MongoDB\Driver\Manager        //入口類 負責維護與MongoDB的連接，執行讀寫和命令
+MongoDB\Driver]BulkWrite      //收集要發送到服務氣的一個或多個插入更新刪除
+MongoDB\Driver\Query          //構造查詢對象
+MongoDB\Driver\Cursor         //封裝命令或查詢的結果
+MongoDB\Driver\WirteResult    //封裝執行結果
+
+連接MongoDB
+$manager = new MongoDB\Driver\Manager("mongodb://127.0.0.1:27017"); //就算讀不到也是會返回一個對象
+
+新增->查詢->修改->刪除
+使用MongoDb\Driver\BulkWrite類
+英文單字Bulk 大量 加上 write 寫 = 批量寫入操作
+新增:
+$bulk = new MongoDB\Driver\BulkWrite();
+$id1 = $bulk -> insert([
+    'product_id' => 101,
+    'product_name' => 'IU'
+    'product_price' => 100
+])
+try {
+    $result = $manager -> executeBulkWrite('testdb.products',$bulk);  //指定操作 testdb 数据库中的 products 集合
+    var_dump($result->getInsertedCount());
+} catch(MongoDB\Driver\Exception\BulkWriteException $e){
+    var_dump($e->getWriteResult()->getWriteErrors());
+}
+查詢:
+$filter = ['product_price' => ['$gt' => 100]];        //過濾            
+$options = ['projection' => ['_id' => 0],             //_id 不要顯示 只顯示其他的
+'sort' => ['project_price' => 1]];                    //根據price排序
+$query = new MongoDB\Driver\Query($filter,$options);
+$cursor = $manager-> executeQuery('testdb.products',$query);
+
+foreach($cursor as $document){
+    print_r($document);
+}
+修改刪除:
+$filters = ['product_id' =>103];
+$sets = ['$set' => ['product_price ->111']];
+$updateOptions = ['multi' => false,'upsert => false'];        //upsert是如果資料不再裡面 要不要自動新增 預設是false 
+                                                     //multi是更新找到的第一筆資料 如果是true 就是多筆更新 預設false
+$bulk->update($filters,$sets,$updateOptions);
+$filters = ['product_id' => 101]//刪除
+$bulk->delete($filters);
+try{
+    $result = $manager->executeBulkWrite('testdb.products',$bulk);
+    var_dump('修改影響的數目:' . $result->getModifiedCount());
+    var_dump('修改影響的數目:' . $result->getDeletedCount());
+}catch(MongoDB\Driver\Exception\BulkWriteException $e){
+    var_dump($e -> getWriteResult()->getWriteErrors());
+} 
