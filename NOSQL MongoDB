@@ -138,3 +138,8 @@ mongostat 命令 和 mongotop 命令
 它会间隔固定时间获取mongodb的当前运行状态，并输出
 进入到你安装的MongoDB目录下的bin目录， 然后输入mongostat命令
 D:\set up\mongodb\bin>mongostat
+
+查看狀態
+db.users.find({tags:"cricket"}).explain()                         //可以查看是否使用索引 "cursor" : "BtreeCursor tags_1" 则表示已经使用了索引
+ObjectId("5349b4ddd2781d08c09890f4").getTimestamp()               //查看時間戳  id裡面有4 个字节的时间戳
+ISODate("2014-04-12T21:49:17Z")                                   //會返回ISO格式的文檔創建時間
