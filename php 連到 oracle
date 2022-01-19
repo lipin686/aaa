@@ -1,0 +1,45 @@
+先有instantclient_11_2 裡面放
+oci.dll
+ociw32.dll
+orannzsbb11.dll
+oraociei11.dll 
+有更多檔案 只是我只複製其中幾個dll檔
+然後把instantclient_11_2放到環境變數
+
+然後 去php.ini 把路徑打開
+extension=php_oci8_11g.dll
+extension=php_pdo_oci.dll 
+
+然後 重啟 apache 
+然後到C:\AP\EXE\app\client\admin\product\12.1.0\client_1\network\admin\tnsnames.ora
+裡面新增看要連去哪裡
+ERPHR_QAS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 172.17.194.66)(PORT = 1521))
+    (CONNECT_DATA = (SID = ERPHR))
+  ) 
+最後到程式裏面新增
+case "oracle-ERPHR_QAS":
+    if (self::$pdo !== null) {
+        if(self::$db == $database)
+            return self::$pdo;
+    }
+
+    self::$db = 'oracle-ERPHR_QAS';
+    try {
+
+        $tns = "
+            (DESCRIPTION =
+                (ADDRESS = (PROTOCOL = TCP)(HOST = 172.17.194.66)(PORT = 1521))
+                (CONNECT_DATA = 
+                    (SERVER = DEDICATED)
+                    (SID = ERPHR)
+                )
+            )";
+        $dsn = sprintf("oci:dbname=");
+
+        return self::$pdo = new PDO("oci:dbname=ERPHR_QAS" , "FAB12A_DF1","PASSWORD01");
+    } catch (PDOException $e) {
+        exit($e->getMessage());
+    }
+break;
