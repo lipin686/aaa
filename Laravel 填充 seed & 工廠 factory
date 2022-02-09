@@ -43,5 +43,6 @@ $factory->define(App\User::class, function (Faker $faker) {
 到seed\UsersTableSeeder修改run()
 public function run()
 {
+    \App\User::class::truncate();  // 先清理表数据
     factory(\App\User::class, 5)->create();     //5=5筆資料
 }
