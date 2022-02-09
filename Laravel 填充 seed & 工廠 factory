@@ -26,7 +26,11 @@ public function run()
 php artisan db:seed                           //執行在DatabaseSeeder裡的run()
 
 以上用完只會新增1筆  偏爛 所以要有factory無情登場
+php artisan make:factory PostFactory --model=Models/Post  //新增factory資料   套用到哪個Model模型  這邊是新增新的factory
+路徑: database\factories
 以下用新增使用者來作範例 如果要添加其他的資料表 修改App\User這個面向 
+
+
 $factory->define(App\User::class, function (Faker $faker) {
     return [
         'name' => $faker->name,
