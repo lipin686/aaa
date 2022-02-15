@@ -86,6 +86,9 @@ public function attributes()                   //錯誤時的名稱顯示 跟下
 }
 
 上面設定好後 就可以去controller套用 執行controller前會先去執行驗證 
+
+use App\Http\Requests\TagCreateRequest;
+
 public function form(SubmitFormRequest $request)
 {
     return response('表单验证通过');
