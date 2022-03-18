@@ -1,0 +1,10 @@
+ucwords() 函數把字符串中每個單詞的首字符轉換為大寫。
+ucfirst() 函數把字符串中的首字符轉換為大寫。
+trim() 函數從字符串的兩端刪除空白字符和其他預定義字符。
+substr_replace() 函數把字符串的一部分替換為另一個字符串。
+substr_count() 函數計算子串在字符串中出現的次數。
+substr_compare() 函數從指定的開始長度比較兩個字符串。
+substr( $string , $start , $length ) 函數返回字符串的一部分。
+strtr("Hilla Warld","ia","eo"); 函數轉換字符串中特定的字符。
+strtoupper() 函數把字符串轉換為大寫。
+strtolower() 函數把字符串轉換為小寫。
