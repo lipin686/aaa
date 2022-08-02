@@ -1,0 +1,36 @@
+composer require mews/captcha
+
+php artisan vendor:publish --provider='Mews\Captcha\CaptchaServiceProvider'
+
+在登入頁面或是註冊頁面 新增
+<div class="form-group row">
+  <label for="captcha" class="col-md-4 col-form-label text-md-right">驗證碼</label>
+
+  <div class="col-md-6">
+
+      <input id="captcha" class="form-control{{ $errors->has('captcha') ? ' is-invalid' : '' }}" name="captcha" >
+
+      <img class="thumbnail mt-3 mb-2" src="{{ captcha_src() }}" onclick="this.src='/captcha?'+Math.random()" title="點選圖片重新獲取驗證碼">
+
+      @if ($errors->has('captcha'))
+      <span class="invalid-feedback" role="alert">
+          <strong>{{ $errors->first('captcha') }}</strong>
+      </span>
+      @endif
+  </div>
+</div>
+
+如使用auth來登入 很多function在Illuminate\Foundation\Auth\AuthenticatesUsers之中 
+裡面的 validateLogin function 是用來驗證request的細項規則
+可以在 loginController內 直接複寫此function
+function validateLogin(Request $request)
+    {
+        $request->validate([
+            $this->username() => 'required|string',
+            'password' => 'required|string',
+            'captcha' => 'required|captcha',
+        ],[
+            'captcha.required' => '驗證碼不得為空，請輸入',
+            'captcha.captcha' => '驗證碼錯誤，請重新輸入',
+        ]);
+    }
