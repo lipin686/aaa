@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Validator;
 
 $this->validate($request, [
-    'title' => 'bail|required|string|between:2,32',
-    'url' => 'sometimes|url|max:200',
-    'picture' => 'nullable|string'
+    'title' => ['bail','required','string','between:2,32'],
+    'url' => ['sometimes,'url,'max:200'],
+    'picture' => ['nullable','string']
 ]);
 return response('表单验证通过');
 
@@ -22,9 +22,9 @@ return response('表单验证通过');
 
 設定錯誤提示文字
 $this->validate($request, [
-   'title' => 'bail|required|string|between:2,32',
-   'url' => 'sometimes|url|max:200',
-   'picture' => 'nullable|string'
+    'title' => ['bail','required','string','between:2,32'],
+    'url' => ['sometimes,'url,'max:200'],
+    'picture' => ['nullable','string']
 ], [
    'title.required' => '标题字段不能为空',
    'title.string' => '标题字段仅支持字符串',
@@ -37,9 +37,9 @@ $this->validate($request, [
 use Illuminate\Validation\Validator
 
 Validator::make($request->all(), [
-   'title' => 'bail|required|string|between:2,32',
-   'url' => 'sometimes|url|max:200',
-   'picture' => 'nullable|string'
+    'title' => ['bail','required','string','between:2,32'],
+    'url' => ['sometimes,'url,'max:200'],
+    'picture' => ['nullable','string']
 ], [
    'title.required' => '标题字段不能为空',
    'title.string' => '标题字段仅支持字符串',
@@ -59,9 +59,9 @@ public function authorize()               //authorize() 方法用于检查用户
 public function rules()                   //跟在controller一樣 設定約束
 {
     return [
-        'title' => 'bail|required|string|between:2,32',
-        'url' => 'sometimes|url|max:200',
-        'picture' => 'nullable|string'
+         'title' => ['bail','required','string','between:2,32'],
+         'url' => ['sometimes,'url,'max:200'],
+         'picture' => ['nullable','string']
     ];
 }
 
